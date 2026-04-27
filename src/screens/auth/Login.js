@@ -1,20 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Text, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
-import { authLogin } from '../../app/api/auth';
+import { userLogin } from '../../app/reducers/auth';
 import { ROUTES } from '../../utils';
-import { useNavigation } from '@react-navigation/native';
 
 const Login = () => {
   // GETTER //SETTER
   const [emailAdd, setEmailAdd] = useState('');
   const [password, setPassword] = useState('');
 
-  const navigation = useNavigation()
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const authState = useSelector(state => state.auth);
 
-  //   useEffect(() => {}, [emailAdd, password]);
+  useEffect(() => {
+    if (authState.data) {
+      navigation.navigate(ROUTES.HOME);
+    }
+
+    if (authState.isError) {
+      Alert.alert('Login failed', 'Invalid credentials');
+    }
+  }, [authState.data, authState.isError, navigation]);
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -55,7 +66,7 @@ const Login = () => {
 
       <CustomButton
         label={'LOGIN'}
-        onPress={async () => {
+        onPress={() => {
           if (!emailAdd || !password) {
             Alert.alert('Login required', 'Please enter email and password');
             return;
@@ -66,18 +77,7 @@ const Login = () => {
 
 
 
-          try {
-            const result = await authLogin({
-              username: emailAdd,
-              password,
-            });
-
-            Alert.alert('Login successful', 'Welcome back!');
-            navigation.navigate(ROUTES.HOME);
-            console.log('Login result:', result);
-          } catch (error) {
-            Alert.alert('Invalid credentials', error.message);
-          }
+          dispatch(userLogin({ username: emailAdd, password }));
         }} />
     </View>
   );
