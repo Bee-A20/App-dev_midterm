@@ -3,6 +3,8 @@ import { Alert, Text, View } from 'react-native';
 
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
+import { authLogin } from '../../app/api/auth';
+import { ROUTES } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 
 const Login = () => {
@@ -51,15 +53,32 @@ const Login = () => {
         }}
       />
 
-      <CustomButton label={'LOGIN'} onPress={() => {
-        if (emailAdd) Alert.alert("Incorrect Credentials", "Please try again!");
+      <CustomButton
+        label={'LOGIN'}
+        onPress={async () => {
+          if (!emailAdd || !password) {
+            Alert.alert('Login required', 'Please enter email and password');
+            return;
+          }
 
 
         
 
 
 
-      }} />
+          try {
+            const result = await authLogin({
+              username: emailAdd,
+              password,
+            });
+
+            Alert.alert('Login successful', 'Welcome back!');
+            navigation.navigate(ROUTES.HOME);
+            console.log('Login result:', result);
+          } catch (error) {
+            Alert.alert('Invalid credentials', error.message);
+          }
+        }} />
     </View>
   );
 };
